@@ -1,9 +1,10 @@
-\
 # -*- coding: utf-8 -*-
 """
 ネットワーク障害 切り分け探偵 -- 情報Ⅰ学習用Webアプリ
 Streamlit 単一ファイルで完結。
 """
+
+import random
 
 import streamlit as st
 import pandas as pd
@@ -90,6 +91,30 @@ SIM = {
 
 IDEAL_ORDER = ["physical", "ipconfig", "ping_gw", "nslookup", "ping_dest"]
 
+
+def build_plain_dot(order_labels, label_to_key):
+    """Step1〜5の現在の選択状況を、シンプルなフローチャートのDOT文字列として描画する。"""
+    lines = [
+        "digraph G {",
+        "rankdir=LR;",
+        'node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];',
+        'edge [color="#999999", penwidth=1.4];',
+    ]
+    for i, label in enumerate(order_labels, start=1):
+        if not label or label == PLACEHOLDER:
+            node_label = f"Step{i}\\n（未選択）"
+            attrs = 'style="rounded,dashed", fillcolor="#f5f5f5", color="#bbbbbb", fontcolor="#999999"'
+        else:
+            key = label_to_key[label]
+            node_label = f"Step{i}\\n{ACTION_SHORT[key]}"
+            attrs = 'fillcolor="#dbe9fb", color="#3f6fb0", fontcolor="#1c3f66", penwidth=1.5'
+        lines.append(f'n{i} [label="{node_label}", {attrs}];')
+    for i in range(1, 5):
+        lines.append(f"n{i} -> n{i + 1};")
+    lines.append("}")
+    return "\n".join(lines)
+
+
 # ============================================================
 # スタイル
 # ============================================================
@@ -164,9 +189,20 @@ col_left, col_right = st.columns([1, 1.35], gap="large")
 # ============================================================
 with col_left:
     st.subheader("🧩 Step1〜Step5：点検フローを組み立てよう")
-    st.caption("5つのアクションを、実行したい順番でStep1〜Step5に重複なく割り当ててください。")
+    st.caption("5つのアクションを、実行したい順番でStep1〜Step5に重複なく割り当ててください。"
+                "選択肢の並び順はランダムです（順番自体はヒントになりません）。")
 
-    options = [PLACEHOLDER] + [ACTION_LABEL[k] for k in ACTION_KEYS]
+    if "shuffled_keys" not in st.session_state:
+        shuffled_keys = ACTION_KEYS.copy()
+        random.shuffle(shuffled_keys)
+        st.session_state["shuffled_keys"] = shuffled_keys
+
+    if st.button("🔀 選択肢の並び順をシャッフルする", use_container_width=True):
+        shuffled_keys = ACTION_KEYS.copy()
+        random.shuffle(shuffled_keys)
+        st.session_state["shuffled_keys"] = shuffled_keys
+
+    options = [PLACEHOLDER] + [ACTION_LABEL[k] for k in st.session_state["shuffled_keys"]]
     label_to_key = {v: k for k, v in ACTION_LABEL.items()}
 
     selections = []
@@ -182,6 +218,9 @@ with col_left:
         st.warning("⚠️ 同じアクションが複数のStepで選択されています。5つのアクションを重複なく選び直してください。")
     elif not has_all:
         st.info(f"あと {5 - len(chosen_labels)} 個のStepでアクションを選択してください。")
+
+    st.markdown("##### 🗺️ あなたの点検フローチャート（リアルタイム表示）")
+    st.graphviz_chart(build_plain_dot(selections, label_to_key), use_container_width=True)
 
     can_run = has_all and not has_duplicate
     run_clicked = st.button("🔬 アルゴリズムを検証する", type="primary", disabled=not can_run, use_container_width=True)
