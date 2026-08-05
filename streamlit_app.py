@@ -23,11 +23,11 @@ PLACEHOLDER = "―― 選択してください ――"
 ACTION_KEYS = ["physical", "ipconfig", "ping_gw", "nslookup", "ping_dest"]
 
 ACTION_LABEL = {
-    "physical": "🔌 LANケーブル・LED点灯確認（物理点検）",
-    "ipconfig": "💻 ipconfig 実行（IP・デフォルトゲートウェイ確認）",
+    "physical": "🔌 LANケーブル・LED点灯確認",
+    "ipconfig": "💻 ipconfig 実行",
     "ping_gw": "🌐 デフォルトゲートウェイへの ping",
-    "nslookup": "🔍 nslookup 実行（DNSの名前解決確認）",
-    "ping_dest": "🎯 宛先Webサーバー（外部）への ping",
+    "nslookup": "🔍 nslookup 実行",
+    "ping_dest": "🎯 宛先Webサーバーへの ping",
 }
 
 ACTION_SHORT = {
