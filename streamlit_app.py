@@ -426,14 +426,6 @@ if "shuffled_keys" not in st.session_state:
 # サイドバー：導入・ストーリー
 # ============================================================
 with st.sidebar:
-    st.markdown("## 🕵️ ネット障害 切り分け探偵")
-    st.markdown(
-        "ある日、あなたのパソコンが**インターネットにつながらなくなった**……。\n\n"
-        "犯人（原因）は一体どこに？ 🔎\n\n"
-        "**「手元」から「外」へ**、順番に証拠（コマンドの実行結果）を集めて、"
-        "無駄なく真相にたどりつく名探偵になろう！"
-    )
-    st.markdown("---")
     if st.button("🔀 選択肢の並び順をシャッフルする", use_container_width=True):
         shuffled_keys = ACTION_KEYS.copy()
         random.shuffle(shuffled_keys)
