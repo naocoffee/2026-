@@ -434,15 +434,6 @@ with st.sidebar:
         "無駄なく真相にたどりつく名探偵になろう！"
     )
     st.markdown("---")
-    st.markdown(
-        "### 📏 探偵の心得（切り分けの鉄則）\n"
-        "1. **物理優先**：まず手元（ケーブル・LED・IP設定）を疑う\n"
-        "2. **内から外へ**：自宅ルーター → インターネットの順で疑う\n"
-        "3. **名前解決の確認**：ドメイン名で通信する前にDNSを疑う\n"
-        "4. **無駄を出さない**：原因が分かったら、それ以上の手順は不要\n"
-        "5. **ただし例外あり**：手がかりから原因の見当がつくなら、遠回りせず核心から確認してもよい"
-    )
-    st.markdown("---")
     if st.button("🔀 選択肢の並び順をシャッフルする", use_container_width=True):
         shuffled_keys = ACTION_KEYS.copy()
         random.shuffle(shuffled_keys)
