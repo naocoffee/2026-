@@ -30,34 +30,51 @@ st.write(f'あなたが選んだ数字は「{number}」です。')
 binary_representation = bin(number)[2:]  # 'bin'関数で2進数に変換し、先頭の'0b'を取り除く
 st.info(f'🔢 10進数の「{number}」を2進数で表現すると「{binary_representation}」になります。 🔢')  # 2進数の表示をハイライト
 
+import streamlit as st
 import random
 
-# 0.0以上1.0未満の浮動小数点数
-r1 = random.random()
-print("random():", r1)
+st.title("乱数生成アプリ")
 
-# 指定範囲の整数（両端含む）
-r2 = random.randint(1, 100)
-print("randint(1, 100):", r2)
+# タブで機能を分ける
+tab1, tab2, tab3 = st.tabs(["整数", "小数", "リストから選択"])
 
-# 指定範囲の浮動小数点数
-r3 = random.uniform(1.0, 10.0)
-print("uniform(1.0, 10.0):", r3)
+with tab1:
+    st.subheader("整数の乱数")
+    col1, col2 = st.columns(2)
+    with col1:
+        min_val = st.number_input("最小値", value=1, key="int_min")
+    with col2:
+        max_val = st.number_input("最大値", value=100, key="int_max")
 
-# リストからランダムに1つ選ぶ
-choices = ["赤", "青", "緑", "黄"]
-r4 = random.choice(choices)
-print("choice:", r4)
+    if st.button("整数を生成"):
+        result = random.randint(int(min_val), int(max_val))
+        st.success(f"生成された整数: **{result}**")
 
-# リストからランダムに複数選ぶ（重複なし）
-r5 = random.sample(choices, 2)
-print("sample:", r5)
+with tab2:
+    st.subheader("小数の乱数")
+    col1, col2 = st.columns(2)
+    with col1:
+        f_min = st.number_input("最小値", value=0.0, key="float_min")
+    with col2:
+        f_max = st.number_input("最大値", value=1.0, key="float_max")
 
-# リストの順序をランダムに並び替える
-nums = [1, 2, 3, 4, 5]
-random.shuffle(nums)
-print("shuffle:", nums)
+    if st.button("小数を生成"):
+        result = random.uniform(f_min, f_max)
+        st.success(f"生成された小数: **{result:.4f}**")
 
-# 再現性が必要な場合はシードを固定
-random.seed(42)
-print("seed固定後:", random.random())
+with tab3:
+    st.subheader("リストからランダム選択")
+    items_text = st.text_area("項目をカンマ区切りで入力", "赤,青,緑,黄")
+    items = [x.strip() for x in items_text.split(",") if x.strip()]
+
+    n = st.slider("選ぶ個数", 1, max(1, len(items)), 1)
+
+    if st.button("選択する"):
+        if len(items) >= n:
+            result = random.sample(items, n)
+            st.success(f"選ばれた項目: **{', '.join(result)}**")
+        else:
+            st.error("項目数が選ぶ個数より少ないです")
+
+st.divider()
+st.caption("Powered by Python `random` module")
