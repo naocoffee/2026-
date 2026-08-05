@@ -320,10 +320,8 @@ def compute_score(order):
 
     diag_positions = {s: get_diag_pos(s, pos) for s in SCENARIOS}
     identified_count = sum(1 for s in SCENARIOS if diag_positions[s] < NOT_EXECUTED)
-    # ⑤ 3ケースすべての原因を特定できたか（Step5まで行かなくても、必要な範囲を押さえていれば満点）
-    rule5_score = round(20 * identified_count / len(SCENARIOS))
 
-    total = int(rule1) * 20 + int(rule2) * 20 + int(rule3) * 20 + int(rule4) * 20 + rule5_score
+    total = int(rule1) * 25 + int(rule2) * 25 + int(rule3) * 25 + int(rule4) * 25
 
     return {
         "pos": pos,
@@ -331,7 +329,6 @@ def compute_score(order):
         "rule2": rule2,
         "rule3": rule3,
         "rule4": rule4,
-        "rule5_score": rule5_score,
         "identified_count": identified_count,
         "diag_positions": diag_positions,
         "total": total,
@@ -615,32 +612,24 @@ col_left, col_right = st.columns([1, 1.35], gap="large")
 # ============================================================
 with col_left:
     st.subheader("Step1〜Step5：点検フローを組み立てよう")
-    st.caption("実行したい順番でアクションを割り当ててください。原因の見当がついたら、Step5まで埋めずに途中で完了してOKです。")
-
-    n_steps = st.select_slider(
-        "🏁 何ステップで点検を完了する？",
-        options=[1, 2, 3, 4, 5],
-        value=5,
-        format_func=lambda n: f"Step{n}で完了",
-        key="n_steps",
-    )
+    st.caption("5つのアクションを、実行したい順番でStep1〜Step5に重複なく割り当ててください。")
 
     options = [PLACEHOLDER] + [ACTION_LABEL[k] for k in st.session_state["shuffled_keys"]]
     label_to_key = LABEL_TO_KEY
 
     selections = []
-    for i in range(1, n_steps + 1):
+    for i in range(1, 6):
         choice = st.selectbox(f"Step {i}", options, key=f"step_{i}")
         selections.append(choice)
 
     chosen_labels = [s for s in selections if s != PLACEHOLDER]
-    has_all = len(chosen_labels) == n_steps
+    has_all = len(chosen_labels) == 5
     has_duplicate = len(set(chosen_labels)) != len(chosen_labels)
 
     if has_duplicate:
         st.warning("⚠️ 同じアクションが複数のStepで選択されています。重複なく選び直してください。")
     elif not has_all:
-        st.info(f"あと {n_steps - len(chosen_labels)} 個のStepでアクションを選択してください。")
+        st.info(f"あと {5 - len(chosen_labels)} 個のStepでアクションを選択してください。")
 
     st.markdown("##### 🗺️ あなたの点検フローチャート（リアルタイム表示）")
     st.graphviz_chart(build_plain_dot(selections, label_to_key), use_container_width=True)
@@ -649,7 +638,7 @@ with col_left:
     run_clicked = st.button("🔬 アルゴリズムを検証する", type="primary", disabled=not can_run, use_container_width=True)
 
     if run_clicked and can_run:
-        order = [label_to_key[selections[i]] for i in range(n_steps)]
+        order = [label_to_key[selections[i]] for i in range(5)]
         st.session_state["order"] = order
         st.session_state["computed"] = True
 
@@ -684,11 +673,10 @@ with col_right:
         st.markdown("##### ✅ 採点基準チェックリスト")
         checklist = pd.DataFrame(
             [
-                ["① 物理優先ルール（手元から外へ）", "OK 🟢" if result["rule1"] else "NG 🔴", "20点"],
-                ["② 階層的切り分け（内から外へ）", "OK 🟢" if result["rule2"] else "NG 🔴", "20点"],
-                ["③ 名前解決の前提確認", "OK 🟢" if result["rule3"] else "NG 🔴", "20点"],
-                ["④ 徹底した手元確認（物理点検とipconfigの両方を先に）", "OK 🟢" if result["rule4"] else "NG 🔴", "20点"],
-                ["⑤ 3ケース全ての原因特定", f"{result['identified_count']} / 3ケース", f"{result['rule5_score']} / 20点"],
+                ["① 物理優先ルール（手元から外へ）", "OK 🟢" if result["rule1"] else "NG 🔴", "25点"],
+                ["② 階層的切り分け（内から外へ）", "OK 🟢" if result["rule2"] else "NG 🔴", "25点"],
+                ["③ 名前解決の前提確認", "OK 🟢" if result["rule3"] else "NG 🔴", "25点"],
+                ["④ 徹底した手元確認（物理点検とipconfigの両方を先に）", "OK 🟢" if result["rule4"] else "NG 🔴", "25点"],
             ],
             columns=["評価項目", "判定", "配点"],
         )
@@ -727,15 +715,6 @@ with col_right:
             )
         else:
             advice.append("🟢 手元確認は万全：物理点検・ipconfigの両方を終えてから外側の確認に進めています。")
-
-        if result["identified_count"] < len(SCENARIOS):
-            missed = 3 - result["identified_count"]
-            advice.append(
-                f"🔴 **手数不足**：今のフローでは、{missed}件のシナリオで原因を特定できていません"
-                "（該当する診断アクションを一度も実行していません）。ステップ数を増やすか、内容を見直しましょう。"
-            )
-        else:
-            advice.append("🟢 3ケースすべてで原因を特定できています。")
 
         for a in advice:
             st.markdown(a)
@@ -803,9 +782,6 @@ with st.expander("🏆 正解フローの例（プロが実践する最も効率
 
 このように「**手元 → 自宅内 → インターネットの外側**」という順序で、**一段階ずつ疑う範囲を広げていく**のが、
 無駄のない切り分けの基本です。
-
-なお、基本トレーニングの3ケースでは、①〜④（物理点検・ipconfig・ゲートウェイping・nslookup）だけで
-3ケースすべての原因を特定できてしまうため、⑤（宛先へのping）は省略してStep4で点検を完了しても満点になります。
         """
     )
 
