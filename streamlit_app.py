@@ -29,3 +29,35 @@ st.write(f'あなたが選んだ数字は「{number}」です。')
 # 選択した数値を2進数に変換
 binary_representation = bin(number)[2:]  # 'bin'関数で2進数に変換し、先頭の'0b'を取り除く
 st.info(f'🔢 10進数の「{number}」を2進数で表現すると「{binary_representation}」になります。 🔢')  # 2進数の表示をハイライト
+
+import random
+
+# 0.0以上1.0未満の浮動小数点数
+r1 = random.random()
+print("random():", r1)
+
+# 指定範囲の整数（両端含む）
+r2 = random.randint(1, 100)
+print("randint(1, 100):", r2)
+
+# 指定範囲の浮動小数点数
+r3 = random.uniform(1.0, 10.0)
+print("uniform(1.0, 10.0):", r3)
+
+# リストからランダムに1つ選ぶ
+choices = ["赤", "青", "緑", "黄"]
+r4 = random.choice(choices)
+print("choice:", r4)
+
+# リストからランダムに複数選ぶ（重複なし）
+r5 = random.sample(choices, 2)
+print("sample:", r5)
+
+# リストの順序をランダムに並び替える
+nums = [1, 2, 3, 4, 5]
+random.shuffle(nums)
+print("shuffle:", nums)
+
+# 再現性が必要な場合はシードを固定
+random.seed(42)
+print("seed固定後:", random.random())
